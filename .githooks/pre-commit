@@ -2,7 +2,7 @@
 
 LIMIT=52428800
 
-git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file
+git -c core.quotePath=false diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file
 do
     case "/$file" in
         */Saved/*|*/Intermediate/*|*/Binaries/*|*/DerivedDataCache/*|*/.vs/*)
