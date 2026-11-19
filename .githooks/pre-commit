@@ -1,0 +1,35 @@
+#!/bin/sh
+
+LIMIT=52428800
+
+git -c core.quotePath=false diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file
+do
+    case "/$file" in
+        */Saved/*|*/Intermediate/*|*/Binaries/*|*/DerivedDataCache/*|*/.vs/*)
+            echo "ERROR: Запрещенный файл: $file"
+            exit 1
+            ;;
+    esac
+
+    size=$(git cat-file -s ":$file") || exit 1
+
+    if [ "$size" -gt "$LIMIT" ]; then
+        attr=$(git check-attr filter -- "$file")
+
+        case "$attr" in
+            *": filter: lfs")
+                ;;
+            *)
+                echo "ERROR: Файл больше 50 МБ и не добавлен в LFS: $file"
+                exit 1
+                ;;
+        esac
+    fi
+done
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+echo "pre-commit: проверка пройдена"
+exit 0
